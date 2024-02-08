@@ -4,6 +4,8 @@ public class LogoScenario : MonoBehaviour
 {
     [SerializeField]
     private Progress progress;
+    [SerializeField]
+    private SceneNames nextScene;
 
     private void Awake()
     {
@@ -29,6 +31,6 @@ public class LogoScenario : MonoBehaviour
 
     private void OnAfterProgress()
     {
-
+        Utils.LoadScene(nextScene);
     }
 }
