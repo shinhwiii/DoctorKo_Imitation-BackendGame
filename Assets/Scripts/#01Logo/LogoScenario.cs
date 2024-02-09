@@ -3,7 +3,7 @@ using UnityEngine;
 public class LogoScenario : MonoBehaviour
 {
     [SerializeField]
-    private Progress progress;
+    private ProgressBar progress;
     [SerializeField]
     private SceneNames nextScene;
 

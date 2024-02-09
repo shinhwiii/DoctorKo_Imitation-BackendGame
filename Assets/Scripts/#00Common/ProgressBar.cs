@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class Progress : MonoBehaviour
+public class ProgressBar : MonoBehaviour
 {
     [SerializeField]
     private Slider sliderProgress;
