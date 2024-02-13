@@ -6,7 +6,8 @@ public class PlayerProjectile : MonoBehaviour
     {
         if (collision.CompareTag("Enemy"))
         {
-            Destroy(collision.gameObject);
+            collision.GetComponent<Enemy>().OnDie();
+
             Destroy(gameObject);
         }
     }

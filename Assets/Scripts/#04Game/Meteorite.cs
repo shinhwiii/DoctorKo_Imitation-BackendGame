@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class Meteorite : MonoBehaviour
 {
+    [SerializeField]
+    private GameObject explosionPrefab;         // 气惯 捞棋飘
     private GameController gameController;
 
     public void Setup(GameController gameController)
@@ -13,6 +15,11 @@ public class Meteorite : MonoBehaviour
     {
         if (collision.CompareTag("Player"))
         {
+            // 气惯 捞棋飘 积己
+            Instantiate(explosionPrefab, transform.position, Quaternion.identity); ;
+            // 款籍 昏力
+            Destroy(gameObject);
+
             gameController.GameOver();
         }
     }
