@@ -5,4 +5,6 @@ public class Constants
     public static readonly int MAX_RANK_LIST = 20;
 
     public static readonly string LEVEL_CHART = "108445";
+
+    public static readonly string GOODS_CHART_NAME = "재화차트";
 }
