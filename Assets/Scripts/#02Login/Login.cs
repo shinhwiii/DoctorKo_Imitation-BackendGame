@@ -56,6 +56,9 @@ public class Login : LoginBase
             {
                 SetMessage($"{inputfieldID.text}님 환영합니다.");
 
+                // 모든 차트 데이터 불러오기
+                BackendChartData.LoadAllChart();
+
                 // Lobby Scene으로 이동
                 Utils.LoadScene(SceneNames.Lobby);
             }
