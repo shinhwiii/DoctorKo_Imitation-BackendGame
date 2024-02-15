@@ -1,25 +1,29 @@
 using BackEnd;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class BackendPostSystem : MonoBehaviour
 {
+    [System.Serializable]
+    public class PostEvent : UnityEvent<List<PostData>> { }
+    public PostEvent onGetPostListEvent = new PostEvent();
+
     private List<PostData> postList = new List<PostData>();
 
-    private void Update()
+    public void PostListGet()
     {
-        if (Input.GetKeyDown("1"))
-        {
-            PostListGet(PostType.Admin);
-        }
-        else if (Input.GetKeyDown("2"))
-        {
-            PostReceive(PostType.Admin, 0);
-        }
-        else if (Input.GetKeyDown("3"))
-        {
-            PostReceiveAll(PostType.Admin);
-        }
+        PostListGet(PostType.Admin);
+    }
+
+    public void PostReceive(PostType postType, string inDate)
+    {
+        PostReceive(postType, postList.FindIndex(item => item.inDate.Equals(inDate)));
+    }
+
+    public void PostReceiveAll()
+    {
+        PostReceiveAll(PostType.Admin);
     }
 
     public void PostListGet(PostType postType)
@@ -92,6 +96,9 @@ public class BackendPostSystem : MonoBehaviour
 
                     postList.Add(post);
                 }
+
+                // 우편 리스트 불러오기가 완료되었을 때 이벤트 메소드 호출
+                onGetPostListEvent?.Invoke(postList);
 
                 // 저장 가능한 모든 우편(postList) 정보 출력
                 for (int i = 0; i < postList.Count; ++i)
@@ -222,7 +229,7 @@ public class BackendPostSystem : MonoBehaviour
 
                 Debug.Log($"{chartName} - {chartFileName}");
                 Debug.Log($"[{itemId}] {itemName} : {itemInfo}, 획득 수량 : {itemCount}");
-                Debug.Log($"아이템을 수령했습니다. : {itemName} - {itemCount}게");
+                Debug.Log($"아이템을 수령했습니다. : {itemName} - {itemCount}개");
             }
         }
         // JSON 데이터 파싱 실패
