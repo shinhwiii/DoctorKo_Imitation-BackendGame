@@ -8,9 +8,15 @@ public class BackendGuildSystem : MonoBehaviour
     [SerializeField]
     private FadeEffect_TMP textLog;
     [SerializeField]
+    private GuildDefaultPage guildDefaultPage;
+    [SerializeField]
     private GuildCreatePage guildCreatePage;
     [SerializeField]
     private GuildApplicantsPage guildApplicantsPage;
+    [SerializeField]
+    private GuildPage guildPage;
+
+    public GuildData myGuildData { private set; get; } = new GuildData();
 
     public void CreateGuild(string guildName, int goodsCount = 1)
     {
@@ -23,6 +29,9 @@ public class BackendGuildSystem : MonoBehaviour
             }
 
             Debug.Log($"길드가 생성되었습니다. : {callback}");
+
+            // 길드를 생성할 때 "길드 공지사항입니다."를 공지사항으로 기본 설정
+            SetNotice("길드 공지사항입니다.");
 
             // 길드 생성에 성공했을 때 호출
             guildCreatePage.SuccessCreateGuild();
@@ -150,6 +159,114 @@ public class BackendGuildSystem : MonoBehaviour
             }
 
             Debug.Log($"길드 가입 요청 거절에 성공했습니다. : {callback}");
+        });
+    }
+
+    public void GetMyGuildInfo()
+    {
+        Backend.Guild.GetMyGuildInfoV3(callback =>
+        {
+            if (!callback.IsSuccess())
+            {
+                ErrorLog(callback.GetMessage(), "Guild_Failed_Log", "GetMyGuildInfoV3");
+                return;
+            }
+
+            try
+            {
+                LitJson.JsonData guildJson = callback.GetFlattenJSON()["guild"];
+
+                if (guildJson.Count <= 0)
+                {
+                    Debug.LogWarning("불러온 길드 데이터가 없습니다.");
+                    return;
+                }
+
+                myGuildData.guildName = guildJson["guildName"].ToString();
+                myGuildData.guildInDate = guildJson["inDate"].ToString();
+                myGuildData.notice = guildJson["NOTICE"].ToString();
+                myGuildData.memberCount = int.Parse(guildJson["memberCount"].ToString());
+
+                myGuildData.master = new GuildMemberData();
+                myGuildData.master.nickname = guildJson["masterNickname"].ToString();
+                myGuildData.master.inDate = guildJson["masterInDate"].ToString();
+
+                myGuildData.viceMasterList = new List<GuildMemberData>();
+
+                LitJson.JsonData viceJson = guildJson["viceMasterList"];
+                for (int i = 0; i < viceJson.Count; ++i)
+                {
+                    GuildMemberData vice = new GuildMemberData();
+                    vice.nickname = viceJson[i]["nickname"].ToString();
+                    vice.inDate = viceJson[i]["inDate"].ToString();
+
+                    myGuildData.viceMasterList.Add(vice);
+                }
+
+                // 내 길드 정보 불러오기 완료 후 처리
+                guildDefaultPage.SuccessMyGuildInfo();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
+        });
+    }
+
+    public void SetNotice(string notice)
+    {
+        Param param = new Param { { "NOTICE", notice } };
+
+        Backend.Guild.ModifyGuildV3(param, callback =>
+        {
+            if (!callback.IsSuccess())
+            {
+                ErrorLog(callback.GetMessage(), "Guild_Failed_Log", "SetNotice");
+                return;
+            }
+
+            Debug.Log($"길드 메타 데이터[공지사항] 변경에 성공했습니다. : {callback}");
+        });
+    }
+
+    public void GetGuildMemberList(string guildInDate)
+    {
+        Backend.Guild.GetGuildMemberListV3(guildInDate, callback =>
+        {
+            if (!callback.IsSuccess())
+            {
+                ErrorLog(callback.GetMessage(), "Guild_Failed_Log", "GetGuildMemberList");
+                return;
+            }
+
+            try
+            {
+                LitJson.JsonData memberJson = callback.GetFlattenJSON()["rows"];
+
+                if (memberJson.Count <= 0)
+                {
+                    Debug.LogWarning("불러온 길드원 데이터가 없습니다.");
+                    return;
+                }
+
+                guildPage.DeactivateAll();
+
+                foreach (LitJson.JsonData member in memberJson)
+                {
+                    GuildMemberData guildMember = new GuildMemberData();
+
+                    guildMember.position = member["position"].ToString();
+                    guildMember.nickname = member["nickname"].ToString();
+                    guildMember.goodsCount = int.Parse(member["totalGoods1Amount"].ToString());
+                    guildMember.lastLogin = member["lastLogin"].ToString();
+
+                    guildPage.Activate(guildMember);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
         });
     }
 
