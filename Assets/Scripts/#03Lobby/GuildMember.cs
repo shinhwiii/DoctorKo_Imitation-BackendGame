@@ -14,8 +14,16 @@ public class GuildMember : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI textLastLogin;
 
-    public void Setup(GuildMemberData memberData)
+    private BackendGuildSystem backendGuildSystem;
+    private GuildPage guildPage;
+    private GuildMemberData guildMemberData;
+
+    public void Setup(BackendGuildSystem guildSystem, GuildPage guildPage, GuildMemberData memberData)
     {
+        backendGuildSystem = guildSystem;
+        this.guildPage = guildPage;
+        guildMemberData = memberData;
+
         SetPosition(memberData.position);
         SetDate(memberData.lastLogin);
 
@@ -61,5 +69,16 @@ public class GuildMember : MonoBehaviour
                 Debug.LogError(e);
             }
         });
+    }
+
+    public void OnClickMemberEdit()
+    {
+        // 길드 마스터가 아니면 길드원 편집을 할 수 없다.
+        if (!UserInfo.Data.nickname.Equals(backendGuildSystem.myGuildData.master.nickname)) return;
+
+        // 길드 마스터 본인의 정보는 편집할 수 없다.
+        if (UserInfo.Data.nickname.Equals(textNickname.text)) return;
+
+        guildPage.OnClickMemberEdit(guildMemberData);
     }
 }

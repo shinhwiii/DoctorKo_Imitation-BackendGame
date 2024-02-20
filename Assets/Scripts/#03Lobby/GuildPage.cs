@@ -13,6 +13,10 @@ public class GuildPage : MonoBehaviour
     private GameObject executivesOption;
     [SerializeField]
     private TextMeshProUGUI textMemberCount;
+    [SerializeField]
+    private GameObject overlayBackground;
+    [SerializeField]
+    private GuildMemberEdit popupMemberEdit;
 
     [SerializeField]
     private GameObject memberPrefab;
@@ -52,7 +56,7 @@ public class GuildPage : MonoBehaviour
     public void Activate(GuildMemberData member)
     {
         GameObject item = memoryPool.ActivatePoolItem();
-        item.GetComponent<GuildMember>().Setup(member);
+        item.GetComponent<GuildMember>().Setup(backendGuildSystem, this, member);
     }
 
     public void Deactivate(GameObject member)
@@ -68,5 +72,18 @@ public class GuildPage : MonoBehaviour
     public void OnClickApplyGuild()
     {
         backendGuildSystem.ApplyGuild(guildName);
+    }
+
+    public void SuccessWithdrawGuild()
+    {
+        gameObject.SetActive(false);
+    }
+
+    public void OnClickMemberEdit(GuildMemberData memberData)
+    {
+        overlayBackground.SetActive(true);
+        popupMemberEdit.gameObject.SetActive(true);
+
+        popupMemberEdit.Setup(memberData);
     }
 }
