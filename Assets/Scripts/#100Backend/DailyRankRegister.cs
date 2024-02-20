@@ -13,7 +13,7 @@ public class DailyRankRegister : MonoBehaviour
         string rowInDate = string.Empty;
 
         // 랭킹 데이터를 업데이트하려면 게임 데이터에서 사용하는 데이터의 inDate 값이 필요
-        Backend.GameData.GetMyData(Constants.USER_DATA_TABLE, new Where(), callback =>
+        Backend.GameData.GetMyData(Constants.USER_RANK_DATA_TABLE, new Where(), callback =>
         {
             if (!callback.IsSuccess())
             {
@@ -38,7 +38,7 @@ public class DailyRankRegister : MonoBehaviour
                 { "dailyBestScore", newScore }
             };
 
-            Backend.URank.User.UpdateUserScore(Constants.DAILY_RANK_UUID, Constants.USER_DATA_TABLE, rowInDate, param, callback =>
+            Backend.URank.User.UpdateUserScore(Constants.DAILY_RANK_UUID, Constants.USER_RANK_DATA_TABLE, rowInDate, param, callback =>
             {
                 if (callback.IsSuccess())
                 {
