@@ -27,18 +27,26 @@ public class GuildPage : MonoBehaviour
         memoryPool = new MemoryPool(memberPrefab, parentContent);
     }
 
-    public void Setup(string guildName, bool isMaster = false)
+    public void Setup(string guildName, bool isMaster = false, bool isOtherGuild = false)
     {
-        notice.Setup(isMaster);
+        notice.Setup(isMaster, isOtherGuild);
         executivesOption.SetActive(isMaster);
 
         gameObject.SetActive(true);
 
         textGuildName.text = guildName;
         this.guildName = guildName;
-        textMemberCount.text = $"길드 인원 {backendGuildSystem.myGuildData.memberCount}/100";
 
-        backendGuildSystem.GetGuildMemberList(backendGuildSystem.myGuildData.guildInDate);
+        if (isOtherGuild)
+        {
+            textMemberCount.text = $"길드 인원 {backendGuildSystem.otherGuildData.memberCount}/100";
+            backendGuildSystem.GetGuildMemberList(backendGuildSystem.otherGuildData.guildInDate);
+        }
+        else
+        {
+            textMemberCount.text = $"길드 인원 {backendGuildSystem.myGuildData.memberCount}/100";
+            backendGuildSystem.GetGuildMemberList(backendGuildSystem.myGuildData.guildInDate);
+        }
     }
 
     public void Activate(GuildMemberData member)

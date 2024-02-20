@@ -17,6 +17,7 @@ public class BackendGuildSystem : MonoBehaviour
     private GuildPage guildPage;
 
     public GuildData myGuildData { private set; get; } = new GuildData();
+    public GuildData otherGuildData { private set; get; } = new GuildData();
 
     public void CreateGuild(string guildName, int goodsCount = 1)
     {
@@ -35,6 +36,17 @@ public class BackendGuildSystem : MonoBehaviour
 
             // 길드 생성에 성공했을 때 호출
             guildCreatePage.SuccessCreateGuild();
+
+            Backend.RandomInfo.SetRandomData(RandomType.Guild, Constants.RANDOM_GUILD_UUID, 0, callback =>
+            {
+                if (!callback.IsSuccess())
+                {
+                    ErrorLog(callback.GetMessage(), "Guild_Failed_Log", "CreateGuild():SetRandomData");
+                    return;
+                }
+
+                Debug.Log($"생성한 길드를 길드 랜덤 조회 목록에 추가하였습니다. : {callback}");
+            });
         });
     }
 
@@ -213,6 +225,64 @@ public class BackendGuildSystem : MonoBehaviour
         });
     }
 
+    public void GetRandomGuildList()
+    {
+        Backend.RandomInfo.GetRandomData(RandomType.Guild, Constants.RANDOM_GUILD_UUID, 0, 0, 20, callback =>
+        {
+            if (!callback.IsSuccess())
+            {
+                ErrorLog(callback.GetMessage(), "Guild_Failed_Log", "GetRandomGuildList");
+                return;
+            }
+
+            try
+            {
+                LitJson.JsonData guildJson = callback.GetFlattenJSON()["rows"];
+
+                if (guildJson.Count <= 0)
+                {
+                    Debug.LogWarning("불러온 랜덤 길드 데이터가 없습니다.");
+                    return;
+                }
+
+                guildDefaultPage.DeactivateAll();
+
+                foreach (LitJson.JsonData guild in guildJson)
+                {
+                    Backend.Guild.GetGuildInfoV3(guild["guildInDate"].ToString(), callback =>
+                    {
+                        if (!callback.IsSuccess())
+                        {
+                            ErrorLog(callback.GetMessage(), "Guild_Failed_Log", "GetRandomGuildList():GetGuildInfoV3");
+                            return;
+                        }
+
+                        LitJson.JsonData guildJson = callback.GetFlattenJSON()["guild"];
+
+                        if (guildJson.Count <= 0)
+                        {
+                            Debug.LogWarning("불러온 길드 데이터가 없습니다.");
+                            return;
+                        }
+
+                        GuildData guildData = new GuildData();
+                        guildData.guildName = guildJson["guildName"].ToString();
+                        guildData.guildInDate = guildJson["inDate"].ToString();
+                        guildData.master = new GuildMemberData();
+                        guildData.master.nickname = guildJson["masterNickname"].ToString();
+                        guildData.memberCount = int.Parse(guildJson["memberCount"].ToString());
+
+                        guildDefaultPage.Activate(guildData);
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
+        });
+    }
+
     public void SetNotice(string notice)
     {
         Param param = new Param { { "NOTICE", notice } };
@@ -262,6 +332,57 @@ public class BackendGuildSystem : MonoBehaviour
 
                     guildPage.Activate(guildMember);
                 }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
+        });
+    }
+
+    public void GetGuildInfo(string guildInDate)
+    {
+        Backend.Guild.GetGuildInfoV3(guildInDate, callback =>
+        {
+            if (!callback.IsSuccess())
+            {
+                ErrorLog(callback.GetMessage(), "Guild_Failed_Log", "GetGuildInfo");
+                return;
+            }
+
+            try
+            {
+                LitJson.JsonData guildJson = callback.GetFlattenJSON()["guild"];
+
+                if (guildJson.Count <= 0)
+                {
+                    Debug.LogWarning("불러온 길드 데이터가 없습니다.");
+                    return;
+                }
+
+                otherGuildData.guildName = guildJson["guildName"].ToString();
+                otherGuildData.guildInDate = guildJson["inDate"].ToString();
+                otherGuildData.notice = guildJson["NOTICE"].ToString();
+                otherGuildData.memberCount = int.Parse(guildJson["memberCount"].ToString());
+
+                otherGuildData.master = new GuildMemberData();
+                otherGuildData.master.nickname = guildJson["masterNickname"].ToString();
+                otherGuildData.master.inDate = guildJson["masterInDate"].ToString();
+
+                otherGuildData.viceMasterList = new List<GuildMemberData>();
+
+                LitJson.JsonData viceJson = guildJson["viceMasterList"];
+                for (int i = 0; i < viceJson.Count; ++i)
+                {
+                    GuildMemberData vice = new GuildMemberData();
+                    vice.nickname = viceJson[i]["nickname"].ToString();
+                    vice.inDate = viceJson[i]["inDate"].ToString();
+
+                    otherGuildData.viceMasterList.Add(vice);
+                }
+
+                // 길드 정보 불러오기 완료 후 처리
+                guildDefaultPage.SuccessGuildInfo();
             }
             catch (Exception e)
             {

@@ -14,10 +14,18 @@ public class Notice : MonoBehaviour
     [SerializeField]
     private FadeEffect_TMP textLog;
 
-    public void Setup(bool isMaster = false)
+    public void Setup(bool isMaster = false, bool isOtherGuild = false)
     {
-        textNotice.text = backendGuildSystem.myGuildData.notice;
-        inputFileNotice.text = backendGuildSystem.myGuildData.notice;
+        if (isOtherGuild)
+        {
+            textNotice.text = backendGuildSystem.otherGuildData.notice;
+            inputFileNotice.text = backendGuildSystem.otherGuildData.notice;
+        }
+        else
+        {
+            textNotice.text = backendGuildSystem.myGuildData.notice;
+            inputFileNotice.text = backendGuildSystem.myGuildData.notice;
+        }
 
         noticeBackground.SetActive(!isMaster);
         inputFileNotice.gameObject.SetActive(isMaster);
